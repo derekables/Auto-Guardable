@@ -1,0 +1,16 @@
+{
+  "name": "auto-guardable",
+  "private": true,
+  "version": "0.2.0",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "typescript": "latest"
+  }
+}
