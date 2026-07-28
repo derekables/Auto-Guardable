@@ -9,11 +9,11 @@ jobs:
     steps:
       - name: Call AI model
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_MODELS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.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 }}
         run: |
           curl "https://models.github.ai/inference/chat/completions" \
              -H "Content-Type: application/json" \
-             -H "Authorization: Bearer $GITHUB_MODELS_TOKEN" \
+             -H "Authorization: Bearer $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" \
              -d '{
               "messages": [
                   {
