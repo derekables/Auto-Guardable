@@ -2,138 +2,77 @@
 
 ## Purpose
 
-This document captures the current architectural state of Auto-Guardable and provides the context required for future engineering work.
+This document captures the current architectural and runtime state of Auto-Guardable so future work can continue without relying on historical conversation context.
 
-The goal is to preserve design intent as the system grows, ensuring that future contributors understand not only what exists, but why the boundaries were created.
+## Current state
 
----
+Auto-Guardable has moved beyond the foundation-only phase.
 
-## Vision
+The repository now contains a runnable MVP path:
 
-Auto-Guardable is designed as an extensible automation and security platform built around independent components communicating through explicit contracts.
-
-The long-term system will support observation sources, intelligent evaluation, and automated responses while maintaining clear separation between sensing, decision-making, and action execution.
-
----
-
-## Current Architectural State
-
-The repository is currently in the foundation phase.
-
-Completed architectural milestones:
-
-- Component boundaries defined
-- Repository organization established
-- Monorepo tooling initialized
-- Domain event system introduced
-- Policy decision boundary introduced
-
-Current system flow:
-
-```
-Observation Source
-        |
-        v
-Domain Event
-        |
-        v
+Browser Camera
+      ↓
+AI Observation Provider
+      ↓
 Policy Evaluation
-        |
-        v
-Policy Decision
-        |
-        v
-Future Action Boundary
-```
+      ↓
+Decision
+      ↓
+Browser Speech
+      ↓
+Local Event Log
 
----
+### Implemented
 
-## Design Philosophy
+- component boundaries and domain contracts
+- monorepo tooling
+- domain event model
+- policy decision boundary
+- decision-pipeline package
+- browser-first MVP dashboard
+- camera capture through getUserMedia()
+- AI provider abstraction
+- OpenAI Responses API adapter
+- deterministic after-hours policy
+- browser speech adapter
+- local JSONL audit log
+- basic CI
+- no-key demo and simulation mode
 
-### Contracts Over Coupling
+### Not implemented yet
 
-Components communicate through explicit contracts rather than direct implementation dependencies.
+- RTSP / ONVIF camera adapters
+- continuous production vision service
+- local vision inference
+- durable database storage
+- authentication and multi-tenant controls
+- server-side speech
+- multi-zone incident state machines
+- production deployment packaging
 
-### Events Over Direct Calls
+## Architectural rule
 
-Sources of information emit domain events. Consumers react to shared contracts instead of depending on specific producers.
+AI must remain advisory to safety-critical policy. The provider may report visible observations, but deterministic policy decides whether an action is appropriate.
 
-### Policies Produce Decisions
+## Next milestone
 
-Policies evaluate events and produce decisions. They do not directly execute actions.
+The next meaningful milestone is a second adapter behind the existing boundaries, not a rewrite of the core.
 
-### Boundaries Before Capabilities
+Preferred sequence:
 
-New capabilities should be introduced only after the appropriate architectural boundary exists.
+1. RTSP/ONVIF observation adapter
+2. incident state and cooldown persistence
+3. replaceable speech package
+4. local vision provider
+5. operator authentication
+6. production deployment packaging
 
----
+## Verification target
 
-## Domain Vocabulary
+A contribution is complete when it has:
 
-### Observation
-
-An input from an external source that may represent something occurring in the environment.
-
-### Domain Event
-
-A normalized representation of something observed by the system.
-
-### Policy
-
-A component responsible for evaluating events according to defined rules.
-
-### Decision
-
-The result of policy evaluation, representing what should happen without performing the action itself.
-
-### Action
-
-A future execution boundary responsible for carrying out approved decisions.
-
----
-
-## Explicit Non-Goals During Foundation Phase
-
-The following are intentionally deferred:
-
-- Camera integrations
-- Speech systems
-- Automated responses
-- AI reasoning systems
-- Hardware-specific dependencies
-
-These capabilities will be introduced after the supporting contracts and boundaries are mature.
-
----
-
-## Next Planned Milestone
-
-The next architectural milestone is the Decision Pipeline Skeleton.
-
-Expected flow:
-
-```
-Observation Source
-        |
-        v
-Domain Event System
-        |
-        v
-Policy Engine
-        |
-        v
-Decision Output
-        |
-        v
-Action Boundary
-```
-
-This milestone should establish the communication path without introducing real-world integrations.
-
----
-
-## Engineering Principle
-
-Auto-Guardable should remain understandable as it grows.
-
-Every major architectural decision should be documented, isolated, and introduced incrementally through focused changes.
+- implementation
+- focused tests
+- documentation appropriate to its scope
+- an understandable failure mode
+- no unnecessary architectural coupling

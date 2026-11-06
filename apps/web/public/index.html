@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto-Guardable — MVP</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">ABLES' LABS</p>
+      <h1>Auto-Guardable</h1>
+      <p class="subtitle">Property protection without the needless confrontation.</p>
+    </div>
+    <div id="systemStatus" class="status-pill">Loading...</div>
+  </header>
+
+  <main class="layout">
+    <section class="card camera-card">
+      <div class="card-heading">
+        <div>
+          <h2>Observation</h2>
+          <p>Browser camera → AI observation → policy decision.</p>
+        </div>
+        <span id="cameraState" class="muted">Camera idle</span>
+      </div>
+
+      <div class="video-wrap">
+        <video id="camera" autoplay playsinline muted></video>
+        <div id="videoPlaceholder" class="video-placeholder">
+          <strong>Camera not started</strong>
+          <span>Click “Start camera” to use the current browser camera.</span>
+        </div>
+      </div>
+
+      <canvas id="frameCanvas" hidden></canvas>
+
+      <div class="button-row">
+        <button id="startCamera">Start camera</button>
+        <button id="scanFrame" disabled>Scan current frame</button>
+        <button id="simulatePerson" class="secondary">Simulate detection</button>
+      </div>
+
+      <p class="hint">
+        The MVP starts with a browser camera so we can prove the complete loop before adding RTSP/ONVIF adapters.
+        AI scans are on-demand to avoid accidental API spend.
+      </p>
+    </section>
+
+    <aside class="card policy-card">
+      <div class="card-heading">
+        <div>
+          <h2>Policy</h2>
+          <p>Deterministic system policy; AI advises, it does not decide.</p>
+        </div>
+      </div>
+
+      <label>
+        Opens
+        <input id="openingTime" type="time" value="08:00">
+      </label>
+      <label>
+        Closes
+        <input id="closingTime" type="time" value="18:00">
+      </label>
+      <label class="checkbox">
+        <input id="announceAfterHours" type="checkbox" checked>
+        <span>Announce after hours</span>
+      </label>
+      <label>
+        Announcement cooldown (seconds)
+        <input id="cooldownSeconds" type="number" min="0" max="3600" step="10" value="120">
+      </label>
+
+      <button id="savePolicy" class="secondary full">Save policy</button>
+
+      <div class="policy-note">
+        <strong>Safety boundary</strong>
+        <p>
+          The AI may describe visible observations, but policy determines whether anything happens.
+          No identity, intent, criminality, or threat inference is used by the MVP.
+        </p>
+      </div>
+    </aside>
+
+    <section class="card decision-card">
+      <div class="card-heading">
+        <div>
+          <h2>Latest decision</h2>
+          <p id="decisionMeta">No scan yet.</p>
+        </div>
+        <span id="actionBadge" class="badge neutral">WAITING</span>
+      </div>
+
+      <div class="decision-grid">
+        <div>
+          <span class="label">People</span>
+          <strong id="peopleCount">—</strong>
+        </div>
+        <div>
+          <span class="label">Confidence</span>
+          <strong id="confidence">—</strong>
+        </div>
+        <div class="wide">
+          <span class="label">Observation</span>
+          <p id="observationSummary">The system has not analyzed a frame.</p>
+        </div>
+        <div class="wide">
+          <span class="label">Decision</span>
+          <p id="decisionReason">No policy decision yet.</p>
+        </div>
+        <div class="wide">
+          <span class="label">Announcement</span>
+          <p id="announcementText">—</p>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button id="speak" disabled>Speak announcement</button>
+      </div>
+    </section>
+
+    <section class="card events-card">
+      <div class="card-heading">
+        <div>
+          <h2>Event log</h2>
+          <p>Local JSONL audit trail for the MVP.</p>
+        </div>
+        <button id="resetLog" class="danger">Clear log</button>
+      </div>
+      <div id="eventList" class="event-list"></div>
+    </section>
+  </main>
+
+  <footer>
+    Auto-Guardable MVP · localhost by default · browser speech stays local
+  </footer>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

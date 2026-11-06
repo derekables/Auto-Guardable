@@ -1,0 +1,16 @@
+{
+  "name": "@auto-guardable/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "build": "node --check src/server.js && node --check src/policy.js && node --check src/event-store.js && node --check public/app.js",
+    "lint": "node --check src/server.js && node --check src/policy.js && node --check src/event-store.js && node --check public/app.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@auto-guardable/ai": "workspace:*"
+  }
+}
