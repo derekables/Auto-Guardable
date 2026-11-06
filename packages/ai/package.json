@@ -1,0 +1,14 @@
+{
+  "name": "@auto-guardable/ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "build": "node --check src/index.js",
+    "lint": "node --check src/index.js",
+    "test": "node --test"
+  }
+}
