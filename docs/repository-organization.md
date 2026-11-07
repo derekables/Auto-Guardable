@@ -2,55 +2,43 @@
 
 ## Purpose
 
-This document defines the structure of the Auto-Guardable repository.
+This document describes the repository as it exists today and separates implemented paths from planned architecture. The repository uses a pnpm workspace intended to support multiple applications and reusable packages while maintaining clear ownership boundaries.
 
-The repository uses a monorepo approach designed to support multiple applications, services, shared libraries, and future products while maintaining clear ownership boundaries.
-
-## Repository Layout
+## Current repository layout
 
 ```text
 .github/
-    workflows/
-
- docs/
-    adr/
-    architecture.md
-    vision.md
-    roadmap.md
-    ethics.md
-    requirements.md
-    api.md
-    ui.md
-    principles.md
-    design-tenets.md
-    system-design.md
-    data-flow.md
+  ISSUE_TEMPLATE/
+  workflows/
+  pull_request_template.md
 
 apps/
-    web/
+  web/
+    public/
+    src/
+
+docs/
+  adr/
+  architecture/
 
 packages/
-    core/
-    policy/
-    ai/
-    camera/
-    speech/
-    events/
-    shared/
+  ai/
+  decision-pipeline/   # TypeScript scaffold; not a workspace package yet
+  events/
+  policy/
 
-services/
-    vision/
-
-scripts/
-
-tests/
-
-examples/
-
-assets/
+package.json
+pnpm-workspace.yaml
+turbo.json
+tsconfig.json
+.nvmrc
+README.md
+CHANGELOG.md
 ```
 
-## Top-Level Responsibilities
+The pnpm workspace currently includes `apps/*`, `packages/*`, and `services/*`. A directory under `packages` is only a pnpm package when it has a package manifest. In particular, `packages/decision-pipeline` currently has no `package.json` and is not independently discovered as a workspace package.
+
+## Top-level responsibilities
 
 ## `.github`
 
@@ -59,123 +47,65 @@ Contains repository automation and collaboration configuration:
 - CI workflows
 - issue templates
 - pull request templates
-- repository configuration
 
 ## `docs`
 
-Contains engineering knowledge and product documentation.
+Contains engineering knowledge and product documentation:
 
-Documentation is considered part of the product.
+- architectural decision records
+- requirements and product direction
+- data-flow and system-design documentation
+- development workflow and engineering handoff
 
-This includes:
-
-- architectural decisions
-- requirements
-- design principles
-- API documentation
-- operational knowledge
+Documentation is part of the product and should describe actual implementation status, not only the intended architecture.
 
 ## `apps`
 
 Contains user-facing applications.
 
-Initial application:
+Current application:
 
-```text
-apps/web
-```
-
-The browser dashboard.
-
-Future applications may include additional administration or client experiences.
+- `apps/web`: browser dashboard and Node.js server for the runnable MVP.
 
 ## `packages`
 
-Contains reusable libraries and shared capabilities.
+Contains reusable libraries and package-level abstractions.
 
-Packages should be independently understandable, loosely coupled, and reusable.
+Current workspace packages:
 
-### `core`
+- `@auto-guardable/ai`: provider interface, OpenAI Responses API adapter, and demo provider.
+- `@auto-guardable/events`: initial TypeScript domain-event contract.
+- `@auto-guardable/policy`: initial TypeScript policy contracts.
 
-Contains fundamental domain concepts and common abstractions.
+Scaffold directory:
 
-Should avoid infrastructure dependencies.
+- `packages/decision-pipeline`: decision and orchestration TypeScript scaffold. It lacks a package manifest, is not wired into `apps/web`, and currently returns an `unimplemented` decision.
 
-### `policy`
+## Planned areas
 
-Contains decision models and policy evaluation logic.
+The following areas are part of the longer-term architecture but are not currently present as implemented directories/packages:
 
-Should not depend directly on cameras, speech providers, or deployment details.
+- camera adapters and RTSP/ONVIF support;
+- speech package and server-side/local TTS;
+- shared/core packages;
+- independently deployed services such as a vision service;
+- scripts, examples, assets, and a dedicated integration-test tree.
 
-### `ai`
+Create these paths when there is concrete implementation to own; do not document them as existing repository contents in the meantime.
 
-Contains AI provider interfaces and adapters.
+## Organization principles
 
-The rest of the system should not depend on a single AI vendor.
-
-### `camera`
-
-Contains camera abstractions, connection interfaces, and stream-related contracts.
-
-### `speech`
-
-Contains speech interfaces and announcement delivery abstractions.
-
-### `events`
-
-Contains event definitions, schemas, and event contracts.
-
-This package supports the event-driven architecture.
-
-### `shared`
-
-Contains shared types, validation schemas, and common utilities.
-
-## `services`
-
-Contains independently deployable processes.
-
-Initial service:
-
-```text
-services/vision
-```
-
-Responsible for computer vision processing and producing observations/events.
-
-## `tests`
-
-Contains automated tests, integration tests, and system validation.
-
-Testing structure should mirror system structure.
-
-## `scripts`
-
-Contains developer tooling such as setup helpers, migration utilities, and maintenance scripts.
-
-## `examples`
-
-Contains sample configurations, demonstrations, and educational material.
-
-## `assets`
-
-Contains project resources such as diagrams and documentation media.
-
-## Organization Principles
-
-The repository follows these rules:
-
-### Separation of Concerns
+### Separation of concerns
 
 Components should have clear responsibilities and ownership.
 
-### Dependencies Flow Inward
+### Dependencies flow inward
 
 Outer systems should depend on inner abstractions rather than the reverse.
 
-### Documentation First
+### Documentation first
 
-Important decisions belong in the repository.
+Important decisions belong in the repository and should be updated alongside the behavior they describe.
 
 ### Replaceability
 
