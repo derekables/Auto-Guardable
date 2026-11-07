@@ -2,13 +2,11 @@
 
 ## Purpose
 
-This document defines the boundaries between major Auto-Guardable components.
+This document describes the intended boundaries between major Auto-Guardable components and maps them to the current MVP implementation.
 
-Components communicate through explicit contracts rather than direct implementation dependencies.
+The contracts are architectural guidance, not a claim that every named subsystem already exists as an independent package or service.
 
-The goal is replaceability, testability, and long-term maintainability.
-
-## Core Principle
+## Core principle
 
 Components should answer:
 
@@ -18,16 +16,30 @@ not:
 
 > How does another component work internally?
 
-## System Contract Overview
+## Current MVP implementation map
+
+| Responsibility | Current implementation | Status |
+|---|---|---|
+| Camera input | Browser `getUserMedia()` and on-demand frame capture | Implemented |
+| AI observation | `@auto-guardable/ai` provider interface and OpenAI Responses adapter | Implemented |
+| Policy | `apps/web/src/policy.js` | Implemented; deterministic operating-hours/cooldown rules |
+| Event history | `apps/web/src/event-store.js` | Implemented; local JSONL, not a database |
+| Speech | Browser SpeechSynthesis API | Implemented as MVP adapter |
+| Decision-pipeline package | `packages/decision-pipeline` TypeScript scaffold | Not integrated; orchestrator remains a placeholder |
+| Camera integrations | RTSP/ONVIF adapters | Not implemented |
+| Incident coordination | Persistent incident state machine | Not implemented |
+| Authentication | User and operator identity/access controls | Not implemented |
+
+## Target system contract overview
 
 ```
-Camera
+Observation Source
   |
   v
-Observation Event
+Normalized Observation
   |
   v
-Event System
+Domain Event
   |
   v
 Policy Engine
@@ -39,49 +51,34 @@ Decision
 Response Coordinator
   |
   v
-Action Request
+Approved Action Request
   |
   v
-Speech Service
+Speech / Notification / Other Adapter
   |
   v
-Announcement
-  |
-  v
-Event Store
+Outcome Event and Audit Store
 ```
 
-## Camera Contract
+## Observation contract
 
 ### Responsibility
 
-Provide observations from supported camera sources.
+Provide normalized observations from supported camera or sensor sources.
 
-### Output
-
-Camera systems produce observation events such as:
-
-```
-PersonDetected
-```
+An observation may report visible facts such as whether a person is present, an estimated count, confidence, and a bounded description.
 
 ### Boundary
 
-Camera systems do not determine:
+Observation providers must not determine identity, intent, criminality, threat level, or legal status. They do not select or execute policy actions.
 
-- intent
-- threat level
-- response
-
-## Event Contract
+## Event contract
 
 ### Responsibility
 
 Provide a common language between system components.
 
-All meaningful observations and actions become events.
-
-Example:
+The TypeScript domain-event scaffold currently describes:
 
 ```typescript
 DomainEvent {
@@ -93,136 +90,49 @@ DomainEvent {
 }
 ```
 
-## Policy Contract
+The MVP currently appends event-shaped records to JSONL rather than using a shared event bus.
+
+## Policy contract
 
 ### Responsibility
 
-Evaluate context and determine an appropriate action.
+Evaluate an observation and operational context and decide whether a response is appropriate.
 
-Input:
+The current JavaScript policy is deterministic and considers configured operating hours, whether after-hours announcements are enabled, and an in-memory cooldown. It does not infer threat or intent.
 
-```typescript
-PolicyContext {
-  event: DomainEvent
-  location: LocationContext
-  configuration: PolicyConfiguration
-}
-```
+Policy does not access cameras, call AI providers, or speak directly.
 
-Output:
-
-```typescript
-PolicyDecision {
-  action: string
-  confidence: number
-  explanation: string
-}
-```
-
-The policy engine does not:
-
-- access cameras
-- generate speech
-- send notifications
-
-## Response Contract
+## Action and speech contract
 
 ### Responsibility
 
-Manage execution of approved decisions.
+Deliver an action only after the policy layer approves it.
 
-Input:
+The MVP uses browser-native speech for approved announcements. The speech adapter does not decide what should be said or whether intervention is warranted.
 
-```typescript
-ActionRequest {
-  action: string
-  reason: string
-}
-```
-
-Output:
-
-```typescript
-ActionResult {
-  status: string
-  timestamp: Date
-}
-```
-
-## Speech Contract
+## AI provider contract
 
 ### Responsibility
 
-Convert approved announcements into delivered communication.
+Allow multiple AI implementations without changing application policy.
 
-Input:
+The current provider exposes scene analysis and returns normalized observation data. The demo provider supports testing without a key; the OpenAI Responses API adapter provides live analysis when configured.
 
-```typescript
-Announcement {
-  text: string
-  voice: string
-}
-```
-
-Output:
-
-```typescript
-AnnouncementResult {
-  delivered: boolean
-  timestamp: Date
-}
-```
-
-Speech does not decide what should be communicated.
-
-## AI Provider Contract
+## Storage contract
 
 ### Responsibility
 
-Allow multiple AI implementations without changing application logic.
+Persist event history and operational records.
 
-Example interface:
+The current MVP uses local JSONL. A durable event store, retention controls, replay, and multi-user audit capabilities remain future work.
 
-```typescript
-AIProvider {
-  generate(request): Response
-}
-```
+## Contract rules
 
-Possible implementations include:
+All production contracts should:
 
-- local models
-- cloud providers
-- future providers
-
-## Storage Contract
-
-### Responsibility
-
-Persist system history and operational records.
-
-Storage implementations should remain replaceable.
-
-Examples:
-
-Development:
-
-```
-SQLite
-```
-
-Production:
-
-```
-PostgreSQL
-```
-
-## Contract Rules
-
-All contracts should:
-
-- use explicit schemas
-- be versionable
-- be testable
-- avoid leaking implementation details
-- support replacement
+- use explicit, versionable schemas;
+- be testable without hardware or external services;
+- avoid leaking implementation details;
+- preserve replaceability;
+- expose failure states;
+- keep observation, policy, and action authority separate.
