@@ -1,110 +1,91 @@
-# Decision Pipeline Skeleton
+# Decision Pipeline: Scaffold and Runtime Boundary
 
 ## Purpose
 
-This document defines the next architectural boundary for Auto-Guardable after establishing component contracts, domain events, policy contracts, and the engineering handoff.
+This document distinguishes two related but currently separate things:
 
-This milestone creates the language and flow of decision processing without implementing real-world integrations or automation execution.
+1. the TypeScript decision-pipeline scaffold under `packages/decision-pipeline`; and
+2. the runnable JavaScript MVP path under `apps/web`.
 
----
+They share the same architectural intent—keep observation, policy, decisions, and actions separate—but the MVP does not yet use the TypeScript scaffold.
 
-## Current Position
+## Current MVP runtime
 
-The foundation currently supports:
-
-```
-Observation Source
-        |
-        v
-Domain Event
-        |
-        v
-Policy Evaluation
-        |
-        v
-Policy Decision
-```
-
-The Decision Pipeline extends this model by defining how these pieces communicate.
-
----
-
-## Target Flow
+The implemented application flow is:
 
 ```
-Observation Source
+Browser Camera Frame
         |
         v
-Event Boundary
+AI Observation Provider
         |
         v
-Policy Engine
+PersonDetected Event (JSONL)
         |
         v
-Decision Output
+Deterministic Policy Evaluation
         |
         v
-Action Boundary
+PolicyEvaluated Event
+        |
+        +----> AnnouncementScheduled (when policy allows)
+                         |
+                         v
+                Browser Speech
+                         |
+                         v
+                AnnouncementPlayed
 ```
 
----
+The current implementation is in `apps/web/src/server.js`, `apps/web/src/policy.js`, and `apps/web/src/event-store.js`. The policy decision is deterministic; AI supplies an observation only.
 
-## Design Principles
+## TypeScript scaffold status
 
-### Decisions Are Not Actions
+The code under `packages/decision-pipeline` defines the beginnings of a `Decision` contract, a `DecisionPipeline` interface, an adapter interface, a basic orchestrator, and a walking-skeleton test.
 
-The decision pipeline determines what should happen. Execution remains a separate concern.
+This folder currently has no `package.json`, so it is not an independently declared pnpm workspace package. Its `BasicDecisionPipeline` currently returns a decision with type `unimplemented`. The scaffold is not imported by the browser MVP, and its TypeScript test is not part of the current JavaScript package test scripts.
 
-Example:
+Treat this as an intentionally incomplete architectural seam—not as a working runtime pipeline.
+
+## Design principles
+
+### Decisions are not actions
+
+A decision describes what the system has selected. An action adapter performs the side effect. For example:
 
 ```
-Decision:
-  "notify homeowner"
-
-Action:
-  send notification
+Decision: request a respectful announcement
+Action: deliver the announcement through a speech adapter
 ```
 
-The pipeline does not own the action implementation.
+The policy layer decides whether a response is appropriate. The speech layer must not create or change policy.
 
----
+### AI is advisory
 
-## Scope of This Milestone
+The vision provider may return normalized observations. It must not make determinations about identity, intent, threat, criminality, or legal status, and it must not directly authorize an action.
+
+### Boundaries must be observable
+
+Each transition should be inspectable through explicit contracts, tests, and event history. The system should preserve the reason for a decision, not only the resulting action.
+
+## Scope of the current scaffold
 
 Included:
 
-- Define decision pipeline interfaces
-- Document communication flow
-- Preserve component independence
-- Establish future extension points
+- Minimal decision and pipeline TypeScript interfaces.
+- Policy-to-decision adapter interface.
+- Minimal orchestration placeholder.
+- Test fixture and walking-skeleton documentation.
 
-Not included:
+Not yet included:
 
-- Camera integrations
-- Speech systems
-- Notifications
-- Hardware control
-- AI reasoning
-- Automated response execution
+- A production decision implementation.
+- Integration with `apps/web`.
+- Real event transport or persistence.
+- Camera or speech adapters.
+- Action execution.
+- Runtime AI integration.
 
----
+## Next integration step
 
-## Future Extensions
-
-Potential future components may attach to these boundaries:
-
-- Camera observation adapters
-- Sensor integrations
-- Machine learning classifiers
-- Human review workflows
-- Automation executors
-
-The architecture should allow these additions without changing existing domain contracts.
-
----
-
-## Engineering Goal
-
-The decision pipeline should remain simple, observable, and replaceable.
-
-The system should gain capabilities by adding implementations behind boundaries, not by changing the core language of the platform.
+When the scaffold is promoted into a real package, add its package manifest, executable implementation, and tests to the workspace. Then integrate it behind a narrow boundary in the web runtime without duplicating policy logic. Until that work is verified, keep the current MVP runtime and the TypeScript scaffold documented separately.
