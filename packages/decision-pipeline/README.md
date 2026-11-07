@@ -1,38 +1,45 @@
-# Decision Pipeline Package
+# Decision Pipeline Scaffold
+
+## Status: not integrated into the runnable MVP
+
+This directory contains an intentionally minimal TypeScript scaffold for Auto-Guardable's decision boundary. It is not currently a separately declared pnpm workspace package and is not imported by `apps/web`.
+
+The current runnable MVP implements its operational policy and event flow in:
+
+- `apps/web/src/policy.js`
+- `apps/web/src/event-store.js`
+- `apps/web/src/server.js`
+
+The scaffold's `BasicDecisionPipeline` currently returns a decision with type `unimplemented`. Its walking-skeleton test describes intended movement through the types, not a production decision engine. The TypeScript test is not included in the current JavaScript workspace test scripts.
 
 ## Purpose
 
-This package establishes the initial code boundary for Auto-Guardable's decision pipeline.
+This scaffold records the intended package boundary for translating policy results into decisions without coupling policy logic to action execution.
 
-This milestone introduces the smallest executable structure for decision flow without implementing integrations, automation, or external actions.
+## Current scope
 
-## Current Flow
+- Minimal `Decision` type.
+- `DecisionPipeline` interface.
+- Policy-decision adapter interface.
+- Basic orchestration placeholder.
+- Fixture and test-convention documentation.
 
-```
-Domain Event
-      |
-      v
-Policy Evaluation
-      |
-      v
-Decision
-```
-
-## Design Rules
+## Design rules
 
 - Decisions describe what should happen.
-- Actions execute decisions and remain outside this package.
+- Actions execute approved decisions and remain outside this package.
 - No hardware integrations belong here.
-- No AI providers belong here.
+- No AI provider belongs here.
 - No external side effects should occur in this boundary.
 
-## Future Growth
+## Promotion criteria
 
-Future implementations may add:
+Before treating this as a working package:
 
-- Decision routing
-- Policy orchestration
-- Audit trails
-- Action adapters
+1. Add a package manifest and include it in the pnpm workspace.
+2. Implement meaningful decision behavior rather than returning `unimplemented`.
+3. Add executable tests using the repository's actual test runner.
+4. Integrate it behind a narrow boundary in `apps/web`.
+5. Verify that policy logic is not duplicated and that the AI remains advisory.
 
-while preserving the core contract.
+Until those steps are complete, this directory is an architectural scaffold only.
